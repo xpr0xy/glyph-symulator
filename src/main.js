@@ -4,6 +4,11 @@ import './style.css';
 /* presets                                                             */
 /* ------------------------------------------------------------------ */
 
+const ROW_DEFAULT = {
+  dx: 0, dy: 0, rot: 0, scale: 1, repeat: 1,
+  stepX: 0, stepY: 0, fade: 1, opacity: 1, blend: 'normal',
+};
+
 const BASE = {
   text: 'GLYPH\nSYMULATOR',
   font: 'Recursive', fontName: null, size: 96, weight: 640, slant: 0, lineHeight: 1.02,
@@ -12,37 +17,93 @@ const BASE = {
   modOn: true, modMirror: false, rate: 0.18, depth: 2, spread: 1, target: 'y', wave: 'sine',
   mod2On: false, mod2Mirror: false, rate2: 0.12, depth2: 0, spread2: 0.5, target2: 'scale', wave2: 'sine',
   audioOn: false, audioSource: 'tone', audioRate: 2.4, sensitivity: 1,
-  overrides: {}, kern: {},
+  overrides: {}, kern: {}, rows: {},
 };
 
 const PRESETS = {
   datum: {},
+
+  monolith: {
+    text: 'MONOLITH', size: 190, weight: 900, lineHeight: 0.82,
+    tracking: -10, seed: 3, scaleY: 1.08,
+    modOn: true, rate: 0.08, depth: 1.2, spread: 1.4, target: 'scale', wave: 'sine',
+    rows: {},
+  },
+
+  chrome: {
+    text: 'CHROME\nLEAK', size: 132, weight: 800, lineHeight: 0.86,
+    tracking: -4, seed: 12, shear: -8, jitter: 4,
+    modOn: true, rate: 0.21, depth: 2.4, spread: 1.1, target: 'y', wave: 'sine',
+    rows: {
+      0: { repeat: 5, stepX: 0, stepY: -5, fade: 0.62, opacity: 0.42, blend: 'screen' },
+      1: { repeat: 5, stepX: 0, stepY: 5, fade: 0.62, opacity: 0.42, blend: 'screen' },
+    },
+  },
+
+  tribal: {
+    text: 'TRIBAL\nSTACK', size: 110, weight: 900, lineHeight: 0.9,
+    tracking: 2, seed: 19, jitter: 14, scaleX: 0.94,
+    modOn: true, modMirror: true, rate: 0.33, depth: 2.4, spread: 1.8, target: 'rotate', wave: 'tri',
+    rows: {
+      0: { repeat: 4, stepX: 0, stepY: 92, fade: 0.72, opacity: 0.55, blend: 'normal' },
+      1: { repeat: 4, stepX: 0, stepY: -92, fade: 0.72, opacity: 0.55, blend: 'normal' },
+    },
+  },
+
+  shred: {
+    text: 'SHRED\nCULTURE', size: 106, weight: 800, lineHeight: 0.92,
+    tracking: -2, seed: 44, jitter: 88, scaleY: 1.32,
+    modOn: true, rate: 1.4, depth: 6, spread: 0.6, target: 'y', wave: 'pulse',
+    rows: {
+      0: { repeat: 3, stepX: 11, stepY: 0, fade: 0.45, opacity: 0.8, blend: 'exclusion' },
+      1: { repeat: 3, stepX: -11, stepY: 0, fade: 0.45, opacity: 0.8, blend: 'exclusion' },
+    },
+  },
+
+  broadcast: {
+    text: 'BROADCAST\nSIGNAL', font: 'JetBrains Mono', size: 76, weight: 500,
+    lineHeight: 1.05, tracking: 12, seed: 8,
+    modOn: true, rate: 0.12, depth: 1, spread: 0.2, target: 'opacity', wave: 'pulse',
+    rows: {
+      0: { repeat: 3, stepX: 0, stepY: 62, fade: 0.7, opacity: 0.6, blend: 'normal' },
+      1: { repeat: 3, stepX: 0, stepY: 62, fade: 0.7, opacity: 0.6, blend: 'normal' },
+    },
+  },
+
   tremor: {
     text: 'TREMOR\nPROTOCOL', size: 104, weight: 800, lineHeight: 0.98,
     tracking: 2, seed: 21, jitter: 18,
     modOn: true, modMirror: true, rate: 2.2, depth: 1.6, spread: 0.45, target: 'y', wave: 'pulse',
+    rows: { 0: { repeat: 2, stepX: 3, stepY: -3, fade: 0.5, opacity: 0.7, blend: 'screen' } },
   },
+
   column: {
     text: 'COLUMN\nBREAK', font: 'Inter', size: 116, weight: 900, lineHeight: 0.9,
     tracking: -6, seed: 4, scaleX: 0.62, scaleY: 1.25,
     modOn: true, rate: 0.12, depth: 1.2, spread: 1.6, target: 'scale', wave: 'sine',
+    rows: {},
   },
+
   keygen: {
     text: '3XP-7741-\nSYM/KEY', font: 'JetBrains Mono', size: 82, weight: 500, lineHeight: 1.15,
     tracking: 8, seed: 33, shear: -6, jitter: 6,
     modOn: true, modMirror: true, rate: 1.1, depth: 5, spread: 2.4, target: 'y', wave: 'saw',
     kern: { '3|X': -4, 'P|-': -2 },
+    rows: {
+      0: { repeat: 3, stepX: 0, stepY: 2, fade: 0.5, opacity: 0.7, blend: 'screen' },
+      1: { repeat: 3, stepX: 0, stepY: 2, fade: 0.5, opacity: 0.7, blend: 'screen' },
+    },
   },
+
   flood: {
     text: 'FLOOD\nTHE\nCHANNEL', font: 'Space Grotesk', size: 88, weight: 700, lineHeight: 0.95,
     tracking: -2, seed: 11, jitter: 28,
     modOn: true, rate: 0.4, depth: 9, spread: 2.2, target: 'rotate', wave: 'tri',
-  },
-  stagger: {
-    text: 'STAGGER\nFIELD', size: 92, weight: 700, lineHeight: 1.0,
-    tracking: 4, seed: 5, jitter: 0,
-    modOn: true, rate: 0.5, depth: 14, spread: 0, target: 'y', wave: 'sine',
-    mod2On: true, rate2: 0.23, depth2: 7, spread2: 0, target2: 'rotate', wave2: 'tri',
+    rows: {
+      0: { repeat: 4, stepX: 14, stepY: 0, fade: 0.7, opacity: 0.9, blend: 'difference' },
+      1: { repeat: 4, stepX: -14, stepY: 0, fade: 0.7, opacity: 0.9, blend: 'difference' },
+      2: { repeat: 4, stepX: 14, stepY: 0, fade: 0.7, opacity: 0.9, blend: 'difference' },
+    },
   },
 };
 
@@ -82,10 +143,13 @@ const el = {
   fontBtn: $('fontBtn'), fontFile: $('fontFile'), fontLabel: $('fontLabel'), dropzone: $('dropzone'),
   slot: $('slot'), saveSlot: $('saveSlot'), loadSlot: $('loadSlot'),
   shareBtn: $('shareBtn'), importBtn: $('importBtn'), importFile: $('importFile'),
+  rowSel: $('rowSel'), rdx: $('rdx'), rdy: $('rdy'), rrot: $('rrot'), rscale: $('rscale'),
+  rrepeat: $('rrepeat'), rstepx: $('rstepx'), rstepy: $('rstepy'), rfade: $('rfade'),
+  ropacity: $('ropacity'), rblend: $('rblend'), rowApplyAll: $('rowApplyAll'),
+  kickBtn: $('kickBtn'),
 };
 
 let glyphs = [];
-let words = [];
 let lines = [];
 let playing = true;
 let selected = new Set();
@@ -110,50 +174,75 @@ function span(cls, text) {
 /* render                                                              */
 /* ------------------------------------------------------------------ */
 
+function rowFor(i) {
+  return { ...ROW_DEFAULT, ...(state.rows[i] || {}) };
+}
+
 function rebuild() {
   const frag = document.createDocumentFragment();
   glyphs = [];
-  words = [];
   lines = [];
 
   const rawLines = state.text.replace(/\r/g, '').split('\n');
-  let index = 0;
   let lineIndex = 0;
 
   rawLines.forEach((lineText) => {
     const lineEl = document.createElement('div');
     lineEl.className = 'line';
+    lineEl.dataset.row = String(lineIndex);
     lineEl.append(span('guide cap'), span('guide x'));
 
-    lineText.split(' ').forEach((token, ti) => {
-      if (ti > 0) lineEl.append(span('gap'));
+    const row = rowFor(lineIndex);
+    const copies = clamp(Math.round(row.repeat), 1, 6);
+    const tokens = lineText.split(' ');
+    const startIndex = glyphs.length;
+    let flat = 0;
 
-      if (!token) {
-        const spacer = span('word');
-        spacer.style.display = 'inline-block';
-        spacer.style.width = '0px';
-        lineEl.append(spacer);
-        return;
-      }
+    for (let c = 0; c < copies; c++) {
+      const copyEl = document.createElement('div');
+      copyEl.className = 'row-copy';
+      copyEl.dataset.copy = String(c);
+      if (c > 0) copyEl.setAttribute('aria-hidden', 'true');
 
-      const wordEl = span('word');
-      for (const ch of token) {
-        const g = span('g');
-        g.dataset.i = String(index);
-        const in1 = span('g-in');
-        const in2 = span('g-in2', ch);
-        in1.append(in2);
-        g.append(in1);
-        wordEl.append(g);
-        glyphs.push({
-          g, in1, in2, char: ch, index, line: lineIndex,
-          r: [0, 1, 2, 3, 4].map((k) => hash(index * 7 + k * 3.13, state.seed)),
-        });
-        index++;
-      }
-      lineEl.append(wordEl);
-      words.push(wordEl);
-    });
+      tokens.forEach((token, ti) => {
+        if (ti > 0) copyEl.append(span('gap'));
+
+        if (!token) {
+          const spacer = span('word');
+          spacer.style.display = 'inline-block';
+          spacer.style.width = '0px';
+          copyEl.append(spacer);
+          return;
+        }
+
+        const wordEl = span('word');
+        for (const ch of token) {
+          const g = span('g');
+          const in1 = span('g-in');
+          const in2 = span('g-in2', ch);
+          in1.append(in2);
+          g.append(in1);
+          wordEl.append(g);
+
+          if (c === 0) {
+            g.dataset.i = String(startIndex + flat);
+            glyphs.push({
+              copies: [{ g, in1, in2 }],
+              char: ch,
+              index: startIndex + flat,
+              line: lineIndex,
+              r: [0, 1, 2, 3, 4].map((k) => hash((startIndex + flat) * 7 + k * 3.13, state.seed)),
+            });
+          } else if (glyphs[startIndex + flat]) {
+            glyphs[startIndex + flat].copies.push({ g, in1, in2 });
+          }
+          flat++;
+        }
+        copyEl.append(wordEl);
+      });
+
+      lineEl.append(copyEl);
+    }
 
     if (lineText === '') lineEl.style.height = state.size * state.lineHeight + 'px';
 
@@ -164,6 +253,7 @@ function rebuild() {
 
   el.grid.replaceChildren(frag);
   el.roGlyphs.textContent = String(glyphs.length);
+  buildRowSelect();
   applySelectionClasses();
   sync();
 }
@@ -226,32 +316,56 @@ function sync() {
     const ty = ov.ty + jitter * 34 * r[4];
     const tx = ov.tx + jitter * 8 * r[0];
 
-    rec.g.style.setProperty('--sx', sx.toFixed(3));
-    rec.g.style.setProperty('--sy', sy.toFixed(3));
-    rec.g.style.setProperty('--rot', rot.toFixed(2) + 'deg');
-    rec.g.style.setProperty('--skew', skew.toFixed(2) + 'deg');
-    rec.g.style.setProperty('--ty', ty.toFixed(2) + 'px');
-    rec.g.style.setProperty('--tx', tx.toFixed(2) + 'px');
-    rec.g.style.setProperty('--track', (state.tracking + kernFor(i)) + 'px');
-    rec.g.style.setProperty('--dm', ov.depth.toFixed(3));
-    rec.g.style.setProperty('--dm2', ov.depth.toFixed(3));
-
-    // channel 1 delay
     const p1 = 1 / Math.max(0.02, state.rate);
     const auto1 = ((state.modMirror && i % 2 ? 1 : -1) * (i / n) * state.spread) * p1;
     const delay1 = ov.phase == null ? auto1 : -ov.phase * p1;
-    rec.in1.style.animationDuration = p1.toFixed(4) + 's';
-    rec.in1.style.animationDelay = delay1.toFixed(4) + 's';
 
-    // channel 2 delay
     const p2 = 1 / Math.max(0.02, state.rate2);
     const auto2 = ((state.mod2Mirror && i % 2 ? 1 : -1) * (i / n) * state.spread2) * p2;
     const delay2 = ov.phase == null ? auto2 : -ov.phase * p2;
-    rec.in2.style.animationDuration = p2.toFixed(4) + 's';
-    rec.in2.style.animationDelay = delay2.toFixed(4) + 's';
+
+    rec.copies.forEach((c) => {
+      c.g.style.setProperty('--sx', sx.toFixed(3));
+      c.g.style.setProperty('--sy', sy.toFixed(3));
+      c.g.style.setProperty('--rot', rot.toFixed(2) + 'deg');
+      c.g.style.setProperty('--skew', skew.toFixed(2) + 'deg');
+      c.g.style.setProperty('--ty', ty.toFixed(2) + 'px');
+      c.g.style.setProperty('--tx', tx.toFixed(2) + 'px');
+      c.g.style.setProperty('--track', (state.tracking + kernFor(i)) + 'px');
+      c.g.style.setProperty('--dm', ov.depth.toFixed(3));
+      c.g.style.setProperty('--dm2', ov.depth.toFixed(3));
+
+      c.in1.style.animationDuration = p1.toFixed(4) + 's';
+      c.in1.style.animationDelay = delay1.toFixed(4) + 's';
+      c.in2.style.animationDuration = p2.toFixed(4) + 's';
+      c.in2.style.animationDelay = delay2.toFixed(4) + 's';
+    });
   });
 
-  words.forEach((w) => { w.style.marginRight = state.wordSpacing + 'px'; });
+  el.grid.querySelectorAll('.word').forEach((w) => {
+    w.style.marginRight = state.wordSpacing + 'px';
+  });
+
+  lines.forEach((lineEl, i) => {
+    const row = rowFor(i);
+    lineEl.style.transform =
+      `translate(${row.dx}px, ${row.dy}px) rotate(${row.rot}deg) scale(${row.scale})`;
+
+    Array.from(lineEl.querySelectorAll('.row-copy')).forEach((cEl, c) => {
+      if (c === 0) {
+        cEl.style.transform = '';
+        cEl.style.opacity = String(row.opacity);
+        cEl.style.mixBlendMode = 'normal';
+      } else {
+        cEl.style.transform = `translate(${c * row.stepX}px, ${c * row.stepY}px)`;
+        cEl.style.opacity = (row.opacity * Math.pow(row.fade, c)).toFixed(3);
+        cEl.style.mixBlendMode = row.blend;
+      }
+    });
+
+    const copies = clamp(Math.round(row.repeat), 1, 6);
+    lineEl.style.marginBottom = Math.max(0, (copies - 1) * row.stepY) + 'px';
+  });
 
   const gapW = fs * 0.26 + 'px';
   el.grid.querySelectorAll('.gap').forEach((sp) => {
@@ -299,6 +413,7 @@ function updateChrome() {
   el.selReadout.textContent = selected.size
     ? `${selected.size} SELECTED`
     : 'NO SELECTION';
+  el.selReadout.classList.toggle('active', selected.size > 0);
   el.stageNote2.textContent =
     `B1 ${state.modOn ? state.target + '/' + state.wave : 'OFF'} · B2 ${state.mod2On ? state.target2 + '/' + state.wave2 : 'OFF'}`;
 
@@ -308,7 +423,7 @@ function updateChrome() {
   const width = Math.round(naturalW || el.grid.scrollWidth);
   el.mWidth.textContent = width + 'px';
   const avg = glyphs.length
-    ? (glyphs.reduce((s, r) => s + (r.g.offsetWidth || 0), 0) / glyphs.length).toFixed(1)
+    ? (glyphs.reduce((s, r) => s + (r.copies[0].g.offsetWidth || 0), 0) / glyphs.length).toFixed(1)
     : '0';
   el.mAvg.textContent = avg + 'px';
 }
@@ -316,18 +431,20 @@ function updateChrome() {
 function fitStage() {
   el.grid.style.transform = 'none';
   el.grid.style.width = '';
-  const natural = el.grid.scrollWidth;
+  const nw = el.grid.scrollWidth;
+  const nh = el.grid.scrollHeight;
   const styles = getComputedStyle(el.stage);
-  const avail = el.stage.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
-  if (!natural || !avail) return;
+  const availW = el.stage.clientWidth - parseFloat(styles.paddingLeft) - parseFloat(styles.paddingRight);
+  const availH = el.stage.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom);
+  if (!nw || !availW) return;
 
-  const k = Math.min(1, avail / natural);
+  const k = Math.min(1, availW / nw, availH / Math.max(1, nh));
   fitK = k;
-  naturalW = natural;
+  naturalW = nw;
   if (k < 0.999) {
     el.grid.style.transformOrigin = 'top left';
     el.grid.style.transform = `scale(${k})`;
-    el.grid.style.width = avail / k + 'px';
+    el.grid.style.width = availW / k + 'px';
   } else {
     el.grid.style.width = '';
   }
@@ -338,7 +455,7 @@ function fitStage() {
 /* ------------------------------------------------------------------ */
 
 function applySelectionClasses() {
-  glyphs.forEach((rec, i) => rec.g.classList.toggle('sel', selected.has(i)));
+  glyphs.forEach((rec, i) => rec.copies[0].g.classList.toggle('sel', selected.has(i)));
   updateChrome();
   hydrateGlyphPanel();
 }
@@ -377,7 +494,7 @@ function hydrateGlyphPanel() {
   el.selChar.textContent = glyphs[first].char === ' ' ? '␠' : glyphs[first].char;
   el.selIndex.textContent = selected.size > 1
     ? `index ${first} + ${selected.size - 1} more`
-    : `index ${first} · advance ${Math.round(glyphs[first].g.offsetWidth)}px`;
+    : `index ${first} · advance ${Math.round(glyphs[first].copies[0].g.offsetWidth)}px`;
 
   el.gx.value = r.tx;
   el.gy.value = r.ty;
@@ -481,6 +598,88 @@ el.stage.addEventListener('pointerdown', (e) => {
 });
 
 /* ------------------------------------------------------------------ */
+/* rows                                                                */
+/* ------------------------------------------------------------------ */
+
+const ROW_CONTROLS = [
+  ['rdx', 'rdxOut', 'dx', (v) => String(Math.round(v))],
+  ['rdy', 'rdyOut', 'dy', (v) => String(Math.round(v))],
+  ['rrot', 'rrotOut', 'rot', (v) => v.toFixed(1)],
+  ['rscale', 'rscaleOut', 'scale', (v) => v.toFixed(2)],
+  ['rrepeat', 'rrepeatOut', 'repeat', (v) => String(Math.round(v))],
+  ['rstepx', 'rstepxOut', 'stepX', (v) => String(Math.round(v))],
+  ['rstepy', 'rstepyOut', 'stepY', (v) => String(Math.round(v))],
+  ['rfade', 'rfadeOut', 'fade', (v) => v.toFixed(2)],
+  ['ropacity', 'ropacityOut', 'opacity', (v) => v.toFixed(2)],
+];
+
+function activeRowIndex() {
+  return clamp(Number(el.rowSel.value) || 0, 0, Math.max(0, lines.length - 1));
+}
+
+function buildRowSelect() {
+  const current = clamp(Number(el.rowSel.value) || 0, 0, Math.max(0, lines.length - 1));
+  el.rowSel.replaceChildren();
+  lines.forEach((_, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = 'ROW ' + String(i + 1).padStart(2, '0');
+    el.rowSel.append(opt);
+  });
+  el.rowSel.value = String(current);
+  hydrateRow();
+}
+
+function hydrateRow() {
+  const row = rowFor(activeRowIndex());
+  ROW_CONTROLS.forEach(([id, outId, key, fmt]) => {
+    el[id].value = row[key];
+    $(outId).textContent = fmt(Number(row[key]));
+  });
+  el.rblend.value = row.blend;
+}
+
+function setRowValue(key, value, needsRebuild) {
+  const i = activeRowIndex();
+  state.rows[i] = { ...rowFor(i), [key]: value };
+  if (needsRebuild) rebuild();
+  else sync();
+}
+
+ROW_CONTROLS.forEach(([id, outId, key, fmt]) => {
+  const input = el[id];
+  input.addEventListener('input', () => {
+    const v = Number(input.value);
+    $(outId).textContent = fmt(v);
+    setRowValue(key, v, key === 'repeat');
+  });
+});
+
+el.rblend.addEventListener('change', () => setRowValue('blend', el.rblend.value, false));
+el.rowSel.addEventListener('change', hydrateRow);
+
+el.rowApplyAll.addEventListener('click', () => {
+  const src = rowFor(activeRowIndex());
+  lines.forEach((_, i) => { state.rows[i] = { ...src }; });
+  rebuild();
+  toast('ROW COPIED TO ALL');
+});
+
+/* kick: momentary depth slam */
+
+let kickTimer = 0;
+function kick() {
+  el.grid.style.setProperty('--kick', '5');
+  el.kickBtn.classList.add('on');
+  clearTimeout(kickTimer);
+  kickTimer = setTimeout(() => {
+    el.grid.style.setProperty('--kick', '1');
+    el.kickBtn.classList.remove('on');
+  }, 220);
+}
+el.kickBtn.addEventListener('click', kick);
+
+/* ------------------------------------------------------------------ */
 /* range bindings                                                      */
 /* ------------------------------------------------------------------ */
 
@@ -576,7 +775,7 @@ el.resetBtn.addEventListener('click', () => {
   Object.assign(state, {
     scaleX: 1, scaleY: 1, shear: 0, rotate: 0, offsetY: 0, jitter: 0,
     tracking: 0, wordSpacing: 0, target: 'y', wave: 'sine',
-    mod2On: false, depth2: 0, overrides: {}, kern: {},
+    mod2On: false, depth2: 0, overrides: {}, kern: {}, rows: {},
   });
   selected.clear();
   hydrate();
@@ -664,7 +863,29 @@ el.randomBtn.addEventListener('click', () => {
     wave2: pick(['sine', 'tri', 'saw', 'pulse']),
     seed: Math.floor(Math.random() * 100),
     overrides: {}, kern: {},
+    rows: {},
   });
+
+  const lineCount = Math.max(1, state.text.split('\n').length);
+  const rows = {};
+  for (let i = 0; i < lineCount; i++) {
+    if (Math.random() < 0.75) {
+      rows[i] = {
+        dx: Math.round(Math.random() * 40) - 20,
+        dy: Math.round(Math.random() * 40) - 20,
+        rot: Math.round(Math.random() * 12) - 6,
+        scale: 0.85 + Math.random() * 0.4,
+        repeat: 1 + Math.floor(Math.random() * 4),
+        stepX: Math.round(Math.random() * 36) - 18,
+        stepY: Math.round(Math.random() * 24) - 12,
+        fade: 0.45 + Math.random() * 0.5,
+        opacity: 0.5 + Math.random() * 0.5,
+        blend: pick(['normal', 'screen', 'difference', 'exclusion', 'overlay']),
+      };
+    }
+  }
+  state.rows = rows;
+
   selected.clear();
   hydrate();
   toast('LANES RANDOMIZED');
@@ -698,6 +919,7 @@ window.addEventListener('keydown', (e) => {
   const tag = (e.target.tagName || '').toLowerCase();
   if (tag === 'textarea' || tag === 'input' || tag === 'select') return;
   if (e.code === 'Space') { e.preventDefault(); el.playBtn.click(); }
+  if (e.code === 'KeyK') kick();
   if (e.code === 'Escape') clearSelection();
   if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
     e.preventDefault();
@@ -1010,17 +1232,19 @@ function stamp() {
 function measure() {
   const fs = state.size;
   const lh = fs * state.lineHeight;
-  const rectW = Math.max(el.grid.scrollWidth, 320);
-  const rectH = Math.max(el.grid.scrollHeight, 200);
   const gapW = fs * 0.26;
-  const runs = [];
+  const out = [];
 
-  let lineIndex = 0;
-  Array.from(el.grid.children).forEach((lineEl) => {
-    const items = Array.from(lineEl.children).filter(
-      (n) => n.classList.contains('word') || n.classList.contains('gap')
-    );
-    const lineRuns = [];
+  let maxW = 320;
+  let maxH = 200;
+
+  Array.from(el.grid.children).forEach((lineEl, li) => {
+    const copyEl = lineEl.querySelector('.row-copy');
+    const items = copyEl
+      ? Array.from(copyEl.children).filter((n) => n.classList.contains('word') || n.classList.contains('gap'))
+      : [];
+    const row = rowFor(li);
+    const runs = [];
     let x = 0;
 
     items.forEach((node) => {
@@ -1029,23 +1253,23 @@ function measure() {
       glyphNodes.forEach((gNode) => {
         const idx = Number(gNode.dataset.i);
         const w = gNode.offsetWidth || fs * 0.6;
-        lineRuns.push({ ch: gNode.textContent, x, w, idx });
+        runs.push({ ch: gNode.textContent, x, w, idx });
         x += w + state.tracking + kernFor(idx);
       });
       if (glyphNodes.length) x += state.wordSpacing;
     });
 
-    if (lineRuns.length) x -= state.wordSpacing;
-    const width = x;
-    const offset =
-      state.align === 'center' ? Math.max(0, (rectW - width) / 2) :
-      state.align === 'right' ? Math.max(0, rectW - width) : 0;
+    if (runs.length) x -= state.wordSpacing;
 
-    lineRuns.forEach((r) => runs.push({ ...r, x: r.x + offset, y: lineIndex * lh }));
-    lineIndex++;
+    const span = Math.abs(x * row.scale) + Math.abs(row.dx) + (row.repeat - 1) * Math.abs(row.stepX);
+    const height = Math.abs(lh * row.scale) + Math.abs(row.dy) + (row.repeat - 1) * Math.abs(row.stepY);
+    maxW = Math.max(maxW, span);
+    maxH = Math.max(maxH, li * lh + height);
+
+    out.push({ runs, row, li });
   });
 
-  return { runs, lh, fs, rectW, rectH };
+  return { lines: out, lh, fs, rectW: maxW, rectH: maxH };
 }
 
 function googleFamily(name) {
@@ -1059,7 +1283,7 @@ function googleFamily(name) {
 }
 
 function buildSVG() {
-  const { runs, lh, fs, rectW, rectH } = measure();
+  const { lines, lh, fs, rectW, rectH } = measure();
   const pad = Math.round(fs * 0.45);
   const W = Math.ceil(rectW + pad * 2);
   const H = Math.ceil(rectH + pad * 2);
@@ -1067,11 +1291,28 @@ function buildSVG() {
   const fam = googleFamily(state.font);
 
   let body = '';
-  runs.forEach((r) => {
-    const ov = resolved(r.idx);
-    const cx = pad + r.x + r.w / 2;
-    const y = pad + r.y + (lh - fs) / 2 + fs * 0.8;
-    body += `<text x="0" y="0" text-anchor="middle" font-family="${esc(state.font)}" font-size="${fs}" font-weight="${state.weight}" style="font-variation-settings:'wght' ${state.weight},'slnt' ${state.slant}" transform="translate(${cx.toFixed(2)} ${y.toFixed(2)}) translate(${ov.tx} ${ov.ty}) rotate(${ov.rot}) skewX(${state.shear}) scale(${ov.sx} ${ov.sy})" fill="#e8e6df">${esc(r.ch)}</text>\n`;
+
+  lines.forEach(({ runs, row, li }) => {
+    const originY = pad + li * lh + lh / 2;
+    const copies = clamp(Math.round(row.repeat), 1, 6);
+
+    for (let c = 0; c < copies; c++) {
+      const tx = row.dx + c * row.stepX;
+      const ty = row.dy + c * row.stepY;
+      const op = c === 0 ? row.opacity : row.opacity * Math.pow(row.fade, c);
+      const blend = c === 0 ? 'normal' : row.blend;
+
+      body += `<g opacity="${op.toFixed(3)}"${blend !== 'normal' ? ` style="mix-blend-mode:${blend}"` : ''} transform="translate(${tx} ${ty}) translate(0 ${originY.toFixed(2)}) rotate(${row.rot}) scale(${row.scale}) translate(0 ${(-originY).toFixed(2)})">\n`;
+
+      runs.forEach((r) => {
+        const ov = resolved(r.idx);
+        const cx = pad + r.x + r.w / 2;
+        const y = pad + li * lh + (lh - fs) / 2 + fs * 0.8;
+        body += `<text x="0" y="0" text-anchor="middle" font-family="${esc(state.font)}" font-size="${fs}" font-weight="${state.weight}" style="font-variation-settings:'wght' ${state.weight},'slnt' ${state.slant}" transform="translate(${cx.toFixed(2)} ${y.toFixed(2)}) translate(${ov.tx} ${ov.ty}) rotate(${ov.rot}) skewX(${state.shear}) scale(${ov.sx} ${ov.sy})" fill="#e8e6df">${esc(r.ch)}</text>\n`;
+      });
+
+      body += `</g>\n`;
+    }
   });
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
@@ -1091,7 +1332,7 @@ function exportSVG() {
 }
 
 function exportPNG() {
-  const { runs, lh, fs, rectW, rectH } = measure();
+  const { lines: measured, lh, fs, rectW, rectH } = measure();
   const pad = Math.round(fs * 0.45);
   const W = Math.ceil(rectW + pad * 2);
   const H = Math.ceil(rectH + pad * 2);
@@ -1108,17 +1349,41 @@ function exportPNG() {
   ctx.textBaseline = 'alphabetic';
   ctx.font = `${state.weight} ${fs}px "${state.font}", sans-serif`;
 
-  runs.forEach((r) => {
-    const ov = resolved(r.idx);
-    const cx = pad + r.x + r.w / 2;
-    const y = pad + r.y + (lh - fs) / 2 + fs * 0.8;
-    ctx.save();
-    ctx.translate(cx + ov.tx, y + ov.ty - state.offsetY);
-    ctx.rotate((ov.rot * Math.PI) / 180);
-    ctx.transform(1, 0, Math.tan((state.shear * Math.PI) / 180), 1, 0, 0);
-    ctx.scale(ov.sx, ov.sy);
-    ctx.fillText(r.ch, 0, 0);
-    ctx.restore();
+  const BLEND = {
+    normal: 'source-over', screen: 'screen', difference: 'difference',
+    exclusion: 'exclusion', overlay: 'overlay', multiply: 'multiply',
+  };
+
+  measured.forEach(({ runs, row, li }) => {
+    const originY = pad + li * lh + lh / 2;
+    const copies = clamp(Math.round(row.repeat), 1, 6);
+
+    for (let c = 0; c < copies; c++) {
+      ctx.save();
+      ctx.globalAlpha = c === 0 ? row.opacity : row.opacity * Math.pow(row.fade, c);
+      ctx.globalCompositeOperation = c === 0 ? 'source-over' : (BLEND[row.blend] || 'source-over');
+
+      ctx.translate(row.dx + c * row.stepX, row.dy + c * row.stepY);
+      ctx.translate(0, originY);
+      ctx.rotate((row.rot * Math.PI) / 180);
+      ctx.scale(row.scale, row.scale);
+      ctx.translate(0, -originY);
+
+      runs.forEach((r) => {
+        const ov = resolved(r.idx);
+        const cx = pad + r.x + r.w / 2;
+        const y = pad + li * lh + (lh - fs) / 2 + fs * 0.8;
+        ctx.save();
+        ctx.translate(cx + ov.tx, y + ov.ty);
+        ctx.rotate((ov.rot * Math.PI) / 180);
+        ctx.transform(1, 0, Math.tan((state.shear * Math.PI) / 180), 1, 0, 0);
+        ctx.scale(ov.sx, ov.sy);
+        ctx.fillText(r.ch, 0, 0);
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
   });
 
   canvas.toBlob((blob) => {

@@ -5,7 +5,7 @@
   --dim: #78766f;
   --line: #212120;
   --line-2: #34342f;
-  --hot: #cf5b45;
+  --hot: #ff3b12;
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --display: "Recursive", "Inter", system-ui, sans-serif;
 }
@@ -338,7 +338,14 @@ button.primary { border-color: var(--ink); }
     repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 0 1px, transparent 1px 24px);
 }
 
-.stage-inner { position: relative; z-index: 2; min-height: 100%; }
+.stage-inner {
+  position: relative;
+  z-index: 2;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
 .ruler-y {
   position: absolute;
@@ -390,6 +397,22 @@ button.primary { border-color: var(--ink); }
   display: block;
   position: relative;
   white-space: nowrap;
+  transform-origin: 0% 50%;
+  will-change: transform;
+}
+
+.row-copy {
+  display: block;
+  white-space: nowrap;
+}
+
+.row-copy + .row-copy {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  pointer-events: none;
+  user-select: none;
 }
 
 .line + .line { margin-top: 0; }
@@ -428,9 +451,22 @@ button.primary { border-color: var(--ink); }
 .g { cursor: pointer; }
 
 .g.sel {
-  outline: 1px solid rgba(232, 230, 223, 0.85);
+  outline: 1px solid var(--hot);
   outline-offset: 2px;
   z-index: 3;
+}
+
+.kick {
+  border-color: var(--hot);
+  color: var(--hot);
+  letter-spacing: 0.2em;
+}
+
+.kick:active,
+.kick.on {
+  background: var(--hot);
+  color: #0b0b0b;
+  border-color: var(--hot);
 }
 
 .g.sel .g-in::selection { background: transparent; }
@@ -454,56 +490,56 @@ button.primary { border-color: var(--ink); }
 .target-opacity.wave-saw .g-in { animation-name: bOpS; }
 
 @keyframes bY {
-  0%, 100% { transform: translateY(calc(var(--d) * -1px)); }
-  50% { transform: translateY(calc(var(--d) * 1px)); }
+  0%, 100% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1px)); }
+  50% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1px)); }
 }
 @keyframes bYt {
-  0% { transform: translateY(calc(var(--d) * -1px)); }
-  50% { transform: translateY(calc(var(--d) * 1px)); }
-  100% { transform: translateY(calc(var(--d) * -1px)); }
+  0% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1px)); }
+  50% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1px)); }
+  100% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1px)); }
 }
 @keyframes bYs {
-  0% { transform: translateY(calc(var(--d) * -1px)); }
-  100% { transform: translateY(calc(var(--d) * 1px)); }
+  0% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1px)); }
+  100% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1px)); }
 }
 @keyframes bYp {
-  0% { transform: translateY(calc(var(--d) * -1px)); }
-  50% { transform: translateY(calc(var(--d) * 1px)); }
+  0% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1px)); }
+  50% { transform: translateY(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1px)); }
 }
 
 @keyframes bScale {
-  0%, 100% { transform: scale(calc(1 - var(--d) * 0.01)); }
-  50% { transform: scale(calc(1 + var(--d) * 0.01)); }
+  0%, 100% { transform: scale(calc(1 - var(--d) * var(--dm, 1) * var(--kick, 1) * 0.01)); }
+  50% { transform: scale(calc(1 + var(--d) * var(--dm, 1) * var(--kick, 1) * 0.01)); }
 }
 @keyframes bScaleS {
-  0% { transform: scale(calc(1 - var(--d) * 0.01)); }
-  100% { transform: scale(calc(1 + var(--d) * 0.01)); }
+  0% { transform: scale(calc(1 - var(--d) * var(--dm, 1) * var(--kick, 1) * 0.01)); }
+  100% { transform: scale(calc(1 + var(--d) * var(--dm, 1) * var(--kick, 1) * 0.01)); }
 }
 
 @keyframes bRot {
-  0%, 100% { transform: rotate(calc(var(--d) * -1deg)); }
-  50% { transform: rotate(calc(var(--d) * 1deg)); }
+  0%, 100% { transform: rotate(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1deg)); }
+  50% { transform: rotate(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1deg)); }
 }
 @keyframes bRotS {
-  0% { transform: rotate(calc(var(--d) * -1deg)); }
-  100% { transform: rotate(calc(var(--d) * 1deg)); }
+  0% { transform: rotate(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1deg)); }
+  100% { transform: rotate(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1deg)); }
 }
 
 @keyframes bSkew {
-  0%, 100% { transform: skewX(calc(var(--d) * -1deg)); }
-  50% { transform: skewX(calc(var(--d) * 1deg)); }
+  0%, 100% { transform: skewX(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1deg)); }
+  50% { transform: skewX(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1deg)); }
 }
 @keyframes bSkewS {
-  0% { transform: skewX(calc(var(--d) * -1deg)); }
-  100% { transform: skewX(calc(var(--d) * 1deg)); }
+  0% { transform: skewX(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * -1deg)); }
+  100% { transform: skewX(calc(var(--d) * var(--dm, 1) * var(--kick, 1) * 1deg)); }
 }
 
 @keyframes bOp {
-  0%, 100% { opacity: calc(1 - var(--d) * 0.016); }
+  0%, 100% { opacity: calc(1 - var(--d) * var(--dm, 1) * var(--kick, 1) * 0.016); }
   50% { opacity: 1; }
 }
 @keyframes bOpS {
-  0% { opacity: calc(1 - var(--d) * 0.016); }
+  0% { opacity: calc(1 - var(--d) * var(--dm, 1) * var(--kick, 1) * 0.016); }
   100% { opacity: 1; }
 }
 
@@ -532,52 +568,52 @@ button.primary { border-color: var(--ink); }
 .t2-opacity.w2-saw .g-in2 { animation-name: cOpS; }
 
 @keyframes cY {
-  0%, 100% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * -1px)); }
-  50% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * 1px)); }
+  0%, 100% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1px)); }
+  50% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1px)); }
 }
 @keyframes cYt {
-  0% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * -1px)); }
-  50% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * 1px)); }
-  100% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * -1px)); }
+  0% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1px)); }
+  50% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1px)); }
+  100% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1px)); }
 }
 @keyframes cYs {
-  0% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * -1px)); }
-  100% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * 1px)); }
+  0% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1px)); }
+  100% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1px)); }
 }
 @keyframes cYp {
-  0% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * -1px)); }
-  50% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * 1px)); }
+  0% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1px)); }
+  50% { transform: translateY(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1px)); }
 }
 @keyframes cScale {
-  0%, 100% { transform: scale(calc(1 - var(--d2) * var(--dm2, 1) * 0.01)); }
-  50% { transform: scale(calc(1 + var(--d2) * var(--dm2, 1) * 0.01)); }
+  0%, 100% { transform: scale(calc(1 - var(--d2) * var(--dm2, 1) * var(--kick, 1) * 0.01)); }
+  50% { transform: scale(calc(1 + var(--d2) * var(--dm2, 1) * var(--kick, 1) * 0.01)); }
 }
 @keyframes cScaleS {
-  0% { transform: scale(calc(1 - var(--d2) * var(--dm2, 1) * 0.01)); }
-  100% { transform: scale(calc(1 + var(--d2) * var(--dm2, 1) * 0.01)); }
+  0% { transform: scale(calc(1 - var(--d2) * var(--dm2, 1) * var(--kick, 1) * 0.01)); }
+  100% { transform: scale(calc(1 + var(--d2) * var(--dm2, 1) * var(--kick, 1) * 0.01)); }
 }
 @keyframes cRot {
-  0%, 100% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * -1deg)); }
-  50% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * 1deg)); }
+  0%, 100% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1deg)); }
+  50% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1deg)); }
 }
 @keyframes cRotS {
-  0% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * -1deg)); }
-  100% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * 1deg)); }
+  0% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1deg)); }
+  100% { transform: rotate(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1deg)); }
 }
 @keyframes cSkew {
-  0%, 100% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * -1deg)); }
-  50% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * 1deg)); }
+  0%, 100% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1deg)); }
+  50% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1deg)); }
 }
 @keyframes cSkewS {
-  0% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * -1deg)); }
-  100% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * 1deg)); }
+  0% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * -1deg)); }
+  100% { transform: skewX(calc(var(--d2) * var(--dm2, 1) * var(--kick, 1) * 1deg)); }
 }
 @keyframes cOp {
-  0%, 100% { opacity: calc(1 - var(--d2) * var(--dm2, 1) * 0.016); }
+  0%, 100% { opacity: calc(1 - var(--d2) * var(--dm2, 1) * var(--kick, 1) * 0.016); }
   50% { opacity: 1; }
 }
 @keyframes cOpS {
-  0% { opacity: calc(1 - var(--d2) * var(--dm2, 1) * 0.016); }
+  0% { opacity: calc(1 - var(--d2) * var(--dm2, 1) * var(--kick, 1) * 0.016); }
   100% { opacity: 1; }
 }
 

@@ -65,6 +65,18 @@ Google Fonts; you can also load your own font files.
 - Slant −15°..+15° mapped to `slnt` where supported.
 - Line height 0.6–2.0.
 
+### Composition rows
+
+- Every line is an object with its own offset, rotation, scale, repeat count, step, fade,
+  opacity, and blend mode.
+- Repeats stack copies behind the base with stepped offsets; opacity falls off by the fade
+  factor per copy. That is the echo/chrome/stack engine.
+- Blend modes: normal, screen, difference, exclusion, overlay, multiply.
+- A row can be copied to every other row in one action.
+- Vertical stacks reserve layout space so rows do not collide unless a negative step makes
+  them collide on purpose.
+- The whole composition is scaled to fit the stage on both axes.
+
 ### Glyph selection and override
 
 - Click to select. Shift-click to add or remove. Drag to offset in x/y. `Esc` clears.
@@ -167,6 +179,15 @@ translate(tx, ty) rotate(rot) skewX(shear) scale(sx, sy)
 transform-origin: 50% 100%
 ```
 
+### Rows as objects
+
+Lines are not just flow content. Each line carries `dx, dy, rot, scale, repeat, stepX, stepY,
+fade, opacity, blend`, resolved at render time from a sparse map keyed by line index. The
+base copy stays in flow; extra copies are absolutely positioned siblings with stepped
+transforms and `mix-blend-mode`, so a stack costs paint, not layout. Vertical stacks add
+layout margin equal to `(repeat - 1) * stepY` so the next row starts after the stack instead
+of inside it.
+
 ### Modulation without a render loop
 
 All glyphs share keyframes; each gets a negative delay:
@@ -235,14 +256,16 @@ transform, so exports are not distorted by the stage scale.
 
 **Transport**
 - `RUNNING / PAUSED` — freeze modulation. Space toggles when focus is not in a field.
-- `RESET LANES` — neutral channel A, spacing, targets, overrides, kerning.
+- `RESET LANES` — neutral channel A, spacing, targets, overrides, kerning, rows.
 - `BAKE FRAME` — freeze the visible frame into per-glyph geometry.
+- `KICK` — momentary 5× depth slam. Also on the `K` key.
 
 **Selection**
 - Click, shift-click, drag, `Esc`, `Cmd/Ctrl+A`.
 
 **Presets**
-- DATUM, TREMOR, COLUMN, KEYGEN, FLOOD, STAGGER, RANDOMIZE.
+- DATUM, MONOLITH, CHROME LEAK, TRIBAL STACK, SHRED CULTURE, BROADCAST, TREMOR, COLUMN,
+  KEYGEN, FLOOD, RANDOMIZE.
 
 ---
 

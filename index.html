@@ -117,6 +117,7 @@ SYMULATOR</textarea>
               <button type="button" id="playBtn" class="play" aria-pressed="true"><span class="dot"></span><span class="label">RUNNING</span></button>
               <button type="button" id="resetBtn">RESET LANES</button>
               <button type="button" id="bakeBtn">BAKE FRAME</button>
+              <button type="button" id="kickBtn" class="kick">KICK</button>
               <span class="sel-readout" id="selReadout">NO SELECTION</span>
             </div>
             <div class="stage-flags">
@@ -142,7 +143,65 @@ SYMULATOR</textarea>
           </div>
         </section>
 
-        <aside class="rail rail-right" aria-label="Transform lanes">
+        <aside class="rail rail-right" aria-label="Composition and transform lanes">
+          <section class="panel">
+            <h2><span>R</span> ROWS</h2>
+            <div class="field">
+              <label for="rowSel">row</label>
+              <select id="rowSel"></select>
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rdx">offset x</label><output id="rdxOut">0</output></div>
+              <input type="range" id="rdx" min="-300" max="300" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rdy">offset y</label><output id="rdyOut">0</output></div>
+              <input type="range" id="rdy" min="-300" max="300" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rrot">rotation</label><output id="rrotOut">0</output></div>
+              <input type="range" id="rrot" min="-45" max="45" step="0.5" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rscale">scale</label><output id="rscaleOut">1.00</output></div>
+              <input type="range" id="rscale" min="0.3" max="2.5" step="0.01" value="1" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rrepeat">repeat</label><output id="rrepeatOut">1</output></div>
+              <input type="range" id="rrepeat" min="1" max="6" step="1" value="1" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rstepx">step x</label><output id="rstepxOut">0</output></div>
+              <input type="range" id="rstepx" min="-120" max="120" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rstepy">step y</label><output id="rstepyOut">0</output></div>
+              <input type="range" id="rstepy" min="-120" max="120" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rfade">fade</label><output id="rfadeOut">1.00</output></div>
+              <input type="range" id="rfade" min="0.2" max="1" step="0.01" value="1" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="ropacity">opacity</label><output id="ropacityOut">1.00</output></div>
+              <input type="range" id="ropacity" min="0.05" max="1" step="0.01" value="1" />
+            </div>
+            <div class="field">
+              <label for="rblend">blend</label>
+              <select id="rblend">
+                <option value="normal">NORMAL</option>
+                <option value="screen">SCREEN</option>
+                <option value="difference">DIFFERENCE</option>
+                <option value="exclusion">EXCLUSION</option>
+                <option value="overlay">OVERLAY</option>
+                <option value="multiply">MULTIPLY</option>
+              </select>
+            </div>
+            <div class="ctl-row">
+              <button type="button" id="rowApplyAll">COPY ROW TO ALL</button>
+            </div>
+          </section>
+
           <section class="panel panel-glyph">
             <h2><span>G</span> GLYPH OVERRIDE</h2>
             <div class="sel-head">
@@ -329,11 +388,15 @@ SYMULATOR</textarea>
               <label for="preset">preset</label>
               <select id="preset">
                 <option value="datum">DATUM</option>
+                <option value="monolith">MONOLITH</option>
+                <option value="chrome">CHROME LEAK</option>
+                <option value="tribal">TRIBAL STACK</option>
+                <option value="shred">SHRED CULTURE</option>
+                <option value="broadcast">BROADCAST</option>
                 <option value="tremor">TREMOR</option>
                 <option value="column">COLUMN</option>
                 <option value="keygen">KEYGEN</option>
                 <option value="flood">FLOOD</option>
-                <option value="stagger">STAGGER</option>
               </select>
             </div>
             <div class="ctl-row">
