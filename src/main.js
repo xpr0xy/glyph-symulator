@@ -727,6 +727,7 @@ function clock() {
 /* ------------------------------------------------------------------ */
 
 hydrate();
+if (document.hidden) el.roFps.textContent = 'IDLE';
 requestAnimationFrame(fpsLoop);
 clock();
 setInterval(clock, 1000);
