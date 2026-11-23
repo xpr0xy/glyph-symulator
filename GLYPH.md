@@ -1,4 +1,4 @@
-# GLYPH / SYMULATOR — build notes
+# GLYPH / SYMULATOR — build notes (v2)
 
 A real-time typographic synthesis terminal. Original implementation, written from scratch.
 Hosted at **https://glyph.pr0xy.dev**.
@@ -13,7 +13,7 @@ Public-surface findings only. No authenticated interior was accessed.
 World's Biggest Fontpack $300, smaller packs $15–$20). Glyph Symulator is the
 demonstration surface for that catalogue.
 
-**Public claims** (from their own marketing copy):
+**Public claims** (their own marketing copy):
 
 - "advanced typographic simulation interface"
 - "real-time, dual-channel typographic synthesis engine"
@@ -30,22 +30,22 @@ demonstration surface for that catalogue.
 - Unverified requests expire after 15 minutes; unverified accounts cannot enter.
 - Body attributes `data-mode`, `data-available`, `data-pending` drive the UI state.
 - A separate "Device incompatible / mobile access disabled" state exists for narrow viewports.
-- The simulator itself is not in the public bundle. It sits behind the session, so its
-  internals (renderer, font pipeline, parameter model) are not observable from outside.
+- The simulator is not in the public bundle. Its renderer, font pipeline, and parameter
+  model are not observable from outside.
 
-That last point is the honest boundary: everything about the *engine* below is this
-build's design, not a reconstruction of theirs.
+That last point is the honest boundary: everything about the engine below is this build's
+design, not a reconstruction of theirs.
 
 ---
 
 ## 2. What this build is
 
-An independent tool in the same category: type a string, get per-character control over
-its geometry, put that geometry under a modulation source, calibrate spacing against
-guides, and export the result as vector, raster, or a re-playable spec.
+An independent tool in the same category. The unit of work is the individual glyph:
+select it on the stage, transform it, give it its own modulation phase, then compose a
+whole line out of those decisions.
 
-No 3XPYRE code, fonts, copy, or assets are used. Typefaces are open-licensed Google
-Fonts (Recursive, Inter, JetBrains Mono, Space Grotesk).
+No 3XPYRE code, fonts, copy, or assets are used. Built-in typefaces are open-licensed
+Google Fonts; you can also load your own font files.
 
 ---
 
@@ -53,65 +53,88 @@ Fonts (Recursive, Inter, JetBrains Mono, Space Grotesk).
 
 ### Input
 
-- Multi-line text field, live rebuild on every keystroke.
-- Deterministic seed (0–99) drives all pseudo-random per-glyph offsets, so a composition
-  is reproducible from its seed.
-- Words are preserved as units and never break mid-word; explicit line breaks are honored.
+- Multi-line text, live rebuild.
+- Deterministic seed for every pseudo-random per-glyph value.
+- Typeface upload: TTF, OTF, WOFF, WOFF2, via picker or drag onto the stage.
 
 ### Type
 
-- Four variable typefaces plus a system serif fallback.
+- Four variable families plus two system stacks, plus any font you load.
 - Size 24–220 px.
-- Weight 100–1000, mapped to the `wght` axis where the family supports it.
-- Slant −15°..+15°, mapped to the `slnt` axis (Recursive) and otherwise left to transform.
+- Weight 100–1000 mapped to the `wght` axis.
+- Slant −15°..+15° mapped to `slnt` where supported.
 - Line height 0.6–2.0.
 
-### Spacing
+### Glyph selection and override
 
-- Tracking −20..+60 px, applied per glyph.
-- Word gap −20..+120 px, applied per word.
-- Left / center / right alignment.
+- Click to select. Shift-click to add or remove. Drag to offset in x/y. `Esc` clears.
+- Optional select-all.
+- Per-glyph overrides: offset x, offset y, rotation, scale x, scale y, modulation phase,
+  modulation depth multiplier.
+- Overrides compose with the global lanes instead of replacing them; jitter still applies.
+- Selected glyphs are outlined on the stage and counted in the header.
 
-### Channel A — base transform (static, per glyph)
+### Channel A — base transform
 
-- Scale X and Y (0.2–2.0).
-- Shear −45°..+45°.
-- Rotation −180°..+180°.
-- Vertical offset −120..+120 px.
-- Jitter 0–100: deterministic per-glyph variance on scale, rotation, shear, position,
-  seeded from the seed control.
+- Global scale x/y, shear, rotation, vertical offset, jitter.
+- Jitter is deterministic per glyph from the seed.
 
-### Channel B — modulation (animated, per glyph)
+### Channel B1 and B2 — two modulators
 
-- Targets: Y position, scale, rotation, shear, density (opacity).
+- Two independent channels, each with its own target, waveform, rate, depth, phase spread,
+  and mirror flag.
+- Targets: y position, scale, rotation, shear, density.
 - Waveforms: sine, triangle, sawtooth, pulse.
-- Rate 0.02–3 Hz.
-- Depth 0–60 units, interpreted per target.
-- Phase spread 0–4 cycles across the string, so the wave travels through the word.
-- Mirror: alternates phase direction on odd glyphs for a symmetric read.
+- Channels stack on nested elements, so both transforms compose per glyph.
+- Per-glyph phase override replaces the automatic travelling phase for that glyph.
 
 ### Audio coupling
 
-- Internal source: silent 90 Hz carrier amplitude-modulated by an LFO at 0.5–8 Hz. The
-  signal is analysed but never routed to the speakers.
-- Microphone source: `getUserMedia` with echo cancellation, noise suppression, and AGC off.
-- Sensitivity 0.2–4.0.
-- Envelope follower with asymmetric attack/release drives modulation depth, so the type
-  breathes with the signal instead of jittering with every sample.
+- Internal silent tremolo generator (90 Hz carrier, LFO at 0.5–8 Hz) or microphone input.
+- Envelope follower with asymmetric attack/release scales both channels' depth.
 - 8-segment level meter.
 
-### Overlays
+### Spacing and kerning
 
-- Baseline rhythm grid, tied to the current line height.
-- Cap-height and x-height guides, computed from font size and line box.
+- Tracking −20..+60 px.
+- Word gap −20..+120 px.
+- Alignment left / center / right.
+- Kerning pairs: enter two characters and a value in px; the value is added to the left
+  glyph's advance. Pairs are listed and removable.
+- Live metrics: composition width, average advance, override count.
+
+### Stage overlays
+
+- Baseline rhythm grid.
+- Cap-height and x-height guides computed from size and line box.
 - Per-glyph bounding boxes.
+
+### Scope
+
+- Live canvas plot of both modulator waveforms.
+- One tick per glyph showing its current phase, so the travelling wave is visible as data.
+- Selected glyph ticks are brightened.
+
+### Bake frame
+
+- Freezes the current animated frame into per-glyph geometry.
+- Reads each glyph's computed transform matrix, decomposes it, writes overrides, and turns
+  both modulators off. The moving composition becomes an editable static one.
+- This is the still-export path: what you see is what the SVG and PNG will contain.
+
+### Library
+
+- Five local slots (A–E) in `localStorage`.
+- `COPY LINK` encodes the whole state into the URL hash.
+- `IMPORT SPEC` loads a JSON export back in.
+- State is also restored from the hash on boot.
 
 ### Export
 
-- **SVG** — one `<text>` per glyph with its own transform; editable in vector tools.
-  Includes a Google Fonts `@import` so it renders correctly in a browser.
-- **PNG** — 2× raster, canvas pipeline, dark ground.
-- **SPEC** — full state as JSON, re-playable by hand.
+- SVG: one `<text>` per glyph with its own transform, plus a font `@import` for built-in
+  families.
+- PNG: 2× canvas render using the same measured layout and per-glyph transforms.
+- SPEC: the full state as JSON, including overrides and kerning.
 
 ---
 
@@ -119,23 +142,25 @@ Fonts (Recursive, Inter, JetBrains Mono, Space Grotesk).
 
 ### Stack
 
-Vite 8 + vanilla ES modules + hand-written CSS. No framework, no runtime dependencies.
-Total production bundle is roughly 16.6 KB JS + 12.3 KB CSS before gzip.
+Vite 8, vanilla ES modules, hand-written CSS. No runtime dependencies.
+Production bundle: ~28.5 KB JS (10.4 KB gzip) + ~16.6 KB CSS.
 
-### Render model
+### Element model
 
-Each glyph is two nested elements:
+Each glyph is three nested elements:
 
 ```
-.g      → base transform (channel A)
-  .g-in → animated transform (channel B)
+.g      → channel A transform (static, per glyph)
+  .g-in   → channel B1 animation
+    .g-in2  → channel B2 animation
+      text
 ```
 
-Splitting the channels lets the browser composite the animation independently of the
-static geometry. The base transform is written once per state change; the modulation is a
-CSS animation, so the per-frame cost stays on the compositor instead of the main thread.
+Nesting the animation layers lets the compositor apply both transforms without the main
+thread recomputing geometry. The base transform and all variables are written once per
+state change; animation runs in CSS.
 
-Transform order matches CSS semantics:
+Transform order:
 
 ```
 translate(tx, ty) rotate(rot) skewX(shear) scale(sx, sy)
@@ -144,20 +169,20 @@ transform-origin: 50% 100%
 
 ### Modulation without a render loop
 
-Every glyph gets the same keyframes but its own negative `animation-delay`:
+All glyphs share keyframes; each gets a negative delay:
 
 ```
-delay_i = -(i / n) * spread * period
+delay_i = -(phase_i) * period
+phase_i = override, or  (-1 if mirrored and i odd) * (i / n) * spread
 ```
 
-The negative delay starts each glyph mid-cycle, which produces the travelling wave. No
-per-frame JavaScript touches the glyphs. Pausing flips `animation-play-state` on a parent
-class. Depth lives in a single inherited custom property (`--d`) referenced inside the
-keyframes, so a global amplitude change is one style write.
+Depth lives in inherited custom properties (`--d`, `--d2`) and a per-glyph multiplier
+(`--dm`, `--dm2`), so audio can change global amplitude and a single glyph can still be
+attenuated. No per-frame JavaScript touches the glyphs.
 
-Waveform is selected by swapping the animation name; target by a class on the grid that
-overrides `animation-name`. Sawtooth variants get their own keyframes because a linear
-0→1 ramp is not the same shape as a symmetric oscillation.
+Waveform selection swaps the animation name; target selection adds a class that overrides
+`animation-name`. Sawtooth has separate keyframes because a linear ramp is a different
+shape from a symmetric oscillation.
 
 ### Deterministic jitter
 
@@ -165,76 +190,73 @@ overrides `animation-name`. Sawtooth variants get their own keyframes because a 
 hash(n, seed) = fract(sin(n * 127.1 + seed * 311.7) * 43758.5453) * 2 - 1
 ```
 
-Five independent values per glyph index feed scale, rotation, shear, Y offset, and X
-offset. Same seed and text → identical composition, every time.
+Five values per glyph index feed scale, rotation, shear, y offset, x offset. Text plus seed
+reproduces a composition exactly.
 
-### Variable axes
+### Selection and dragging
 
-`font-variation-settings` is set on the grid and inherited:
+Pointer events on the grid. `pointerdown` selects (shift toggles), records each selected
+glyph's resolved offset, and captures the pointer. `pointermove` writes delta overrides
+divided by the current stage fit scale, so dragging tracks the cursor even when the
+composition is scaled down on a narrow viewport.
+
+### Bake decomposition
 
 ```
-"wght" {weight}, "slnt" {slant}, "opsz" {clamped size}
+sx = hypot(a, b)
+rot = atan2(b, a)
+sy = (a*d - b*c) / sx
 ```
 
-Unsupported axes are ignored per family, so one code path covers all four typefaces.
-
-### Audio envelope
-
-`AnalyserNode` with `fftSize = 1024`, time-domain RMS, then an asymmetric smoother
-(0.4 attack, 0.05 release). That asymmetry is what keeps the movement musical: fast to
-react, slow to settle.
-
-The analyser is connected to the destination through a gain of 0.0001. Some browsers will
-not pull a graph branch that never reaches the destination, and a silent analyser was the
-first bug in this build.
+Applied to the computed transform of each animation layer, summed with the current base,
+then written as overrides. Skew is folded into rotation, which is the honest limitation of
+decomposing a 2D matrix.
 
 ### Layout fitting
 
 The stage measures the grid's natural scroll width against its padded width and applies
-`transform: scale(k)` to the grid when the composition overflows. Width is reset before
-measuring every time, otherwise the scaled width feeds back into the measurement and the
-scale collapses on each sync.
+`transform: scale(k)` when the composition overflows. Width is reset before every
+measurement, otherwise the scaled width feeds back into the next measurement.
 
 ### Export
 
-`measure()` walks the rendered lines and reconstructs an untransformed layout: per-glyph
-x offset, word gaps, line index. This is separate from the visual transform so the export
-is not distorted by it.
+`measure()` walks the rendered lines and rebuilds an untransformed layout: per-glyph x,
+advance, line index, plus tracking and kerning. That layout is independent of the visual
+transform, so exports are not distorted by the stage scale.
 
-- SVG: `text-anchor="middle"`, positioned at the glyph's optical center, with the channel A
-  transform applied around that point.
-- PNG: the same layout and transform math, replayed through canvas 2D at 2×.
-- Spec: the state object, verbatim.
+- SVG positions each glyph at its optical center with `text-anchor="middle"` and applies the
+  resolved transform around that point.
+- PNG replays the same layout and transforms through canvas 2D at 2×.
+- The spec is the state object verbatim.
 
 ---
 
 ## 5. Controls reference
 
 **Transport**
-- `RUNNING / PAUSED` — freezes modulation. Space bar toggles when focus is not in a field.
-- `RESET LANES` — returns channel A, spacing, target, and waveform to neutral.
+- `RUNNING / PAUSED` — freeze modulation. Space toggles when focus is not in a field.
+- `RESET LANES` — neutral channel A, spacing, targets, overrides, kerning.
+- `BAKE FRAME` — freeze the visible frame into per-glyph geometry.
+
+**Selection**
+- Click, shift-click, drag, `Esc`, `Cmd/Ctrl+A`.
 
 **Presets**
-- DATUM — calm, near-static, editorial.
-- TREMOR — high-rate pulse, mirrored, slight jitter.
-- COLUMN — condensed scale, slow breathing.
-- KEYGEN — monospaced, tracked out, sawtooth drift.
-- FLOOD — heavy jitter, rotation wave.
-- RANDOMIZE — constrained random across all lanes.
+- DATUM, TREMOR, COLUMN, KEYGEN, FLOOD, STAGGER, RANDOMIZE.
 
 ---
 
 ## 6. Known limits
 
-- SVG export keeps live text. A machine without the typeface installed will substitute;
-  the embedded `@import` fixes this in browsers, not in Illustrator or Figma.
-- Modulation is CSS-driven, so exports capture channel A only. That is intentional:
-  a still cannot contain motion. Export the spec if you need to reproduce the animation.
-- PNG uses the canvas text stack, which applies `wght` but not every custom axis.
-- Glyph counts are comfortable to a few hundred. This is a composition tool, not a
-  paragraph renderer.
-- Mobile scales the composition down rather than reflowing it, because reflow would change
-  the thing the tool exists to control.
+- SVG export keeps live text. A machine without the typeface installed will substitute. The
+  embedded `@import` fixes this in browsers, not in Illustrator or Figma. Uploaded fonts are
+  not embedded.
+- Modulation and audio are runtime-only. Use `BAKE FRAME` before exporting a still.
+- PNG uses the canvas text stack: `wght` applies, other custom axes may not.
+- The baked decomposition folds skew into rotation.
+- Mobile scales the composition down rather than reflowing it.
+- Uploaded fonts live only in the browser session; a reloaded shared link falls back to a
+  built-in family.
 
 ---
 
@@ -242,4 +264,4 @@ is not distorted by it.
 
 - Source: `xpr0xy/glyph-symulator`, branch `main`.
 - Build: `npm run build` → `dist/`.
-- Host: Vercel, domain `glyph.pr0xy.dev`.
+- Host: Vercel project linked to the repo, domain `glyph.pr0xy.dev`.

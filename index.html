@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GLYPH / SYMULATOR — typographic synthesis terminal</title>
-    <meta name="description" content="A real-time glyph synthesis terminal: per-character transform lanes, a modulation channel, variable font axes, spacing calibration, audio reactivity, and vector export." />
+    <meta name="description" content="A real-time glyph synthesis terminal: per-glyph transform overrides, two modulation channels, uploaded typefaces, kerning calibration, audio coupling, and vector export." />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' fill='%230b0b0b'/><text x='8' y='46' font-family='monospace' font-size='38' fill='%23e6e4de'>G</text></svg>" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -19,11 +19,12 @@
         <div class="readouts" role="status" aria-live="off">
           <div class="ro"><span>FAMILY</span><b id="roFamily">RECURSIVE</b></div>
           <div class="ro"><span>GLYPHS</span><b id="roGlyphs">0</b></div>
+          <div class="ro"><span>SELECT</span><b id="roSelect">0</b></div>
           <div class="ro"><span>RATE</span><b id="roRate">0.35 Hz</b></div>
           <div class="ro"><span>FRAME</span><b id="roFps">--</b></div>
         </div>
         <div class="serial">
-          <span>SYS.GLY // 01</span>
+          <span>SYS.GLY // 02</span>
           <span id="roClock">00:00:00</span>
         </div>
       </header>
@@ -34,6 +35,11 @@
             <h2><span>01</span> INPUT</h2>
             <textarea id="text" spellcheck="false" rows="4" aria-label="Text to synthesize">GLYPH
 SYMULATOR</textarea>
+            <div class="dropzone" id="dropzone">
+              <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2" hidden />
+              <button type="button" id="fontBtn">LOAD TYPEFACE</button>
+              <span id="fontLabel">ttf / otf / woff2 · or drop on stage</span>
+            </div>
             <div class="ctl">
               <div class="ctl-head"><label for="seed">seed</label><output id="seedOut">7</output></div>
               <input type="range" id="seed" min="0" max="99" step="1" value="7" />
@@ -50,6 +56,7 @@ SYMULATOR</textarea>
                 <option value="JetBrains Mono">JetBrains Mono</option>
                 <option value="Space Grotesk">Space Grotesk</option>
                 <option value="ui-serif">System Serif</option>
+                <option value="ui-sans-serif">System Sans</option>
               </select>
             </div>
             <div class="ctl">
@@ -85,6 +92,22 @@ SYMULATOR</textarea>
               <button type="button" data-align="center">CENTER</button>
               <button type="button" data-align="right">RIGHT</button>
             </div>
+            <div class="metrics">
+              <div><span>WIDTH</span><b id="mWidth">0</b></div>
+              <div><span>AVG ADV</span><b id="mAvg">0</b></div>
+              <div><span>OVERRIDES</span><b id="mOver">0</b></div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2><span>04</span> KERNING</h2>
+            <div class="kern-row">
+              <input id="kernPair" class="kern-input" maxlength="2" placeholder="AV" aria-label="Kerning pair" />
+              <input id="kernVal" class="kern-input" type="number" value="-6" step="1" aria-label="Kerning value" />
+              <button type="button" id="kernAdd">SET</button>
+            </div>
+            <div class="kern-list" id="kernList"></div>
+            <p class="hint">Applied as extra advance on the left glyph of a pair. Negative tightens.</p>
           </section>
         </aside>
 
@@ -93,6 +116,8 @@ SYMULATOR</textarea>
             <div class="transport">
               <button type="button" id="playBtn" class="play" aria-pressed="true"><span class="dot"></span><span class="label">RUNNING</span></button>
               <button type="button" id="resetBtn">RESET LANES</button>
+              <button type="button" id="bakeBtn">BAKE FRAME</button>
+              <span class="sel-readout" id="selReadout">NO SELECTION</span>
             </div>
             <div class="stage-flags">
               <label class="check"><input type="checkbox" id="ovGrid" /> BASELINE</label>
@@ -108,15 +133,60 @@ SYMULATOR</textarea>
             </div>
             <div class="corner corner-tl" aria-hidden="true"></div>
             <div class="corner corner-br" aria-hidden="true"></div>
+            <div class="stage-hint" id="stageHint">CLICK A GLYPH · DRAG TO OFFSET · SHIFT-CLICK TO MULTI-SELECT</div>
           </div>
 
           <div class="stage-foot">
             <span id="stageNote">CHANNEL A · STATIC TRANSFORM</span>
-            <span id="stageNote2">CHANNEL B · MODULATION</span>
+            <span id="stageNote2">CHANNEL B1 · MODULATION</span>
           </div>
         </section>
 
         <aside class="rail rail-right" aria-label="Transform lanes">
+          <section class="panel panel-glyph">
+            <h2><span>G</span> GLYPH OVERRIDE</h2>
+            <div class="sel-head">
+              <b id="selChar">--</b>
+              <span id="selIndex">nothing selected</span>
+            </div>
+            <p class="hint sel-hint" id="selHint">Click a glyph on the stage. Shift-click to add. Drag to offset.</p>
+            <div id="glyphBody" hidden>
+            <div class="ctl">
+              <div class="ctl-head"><label for="gx">offset x</label><output id="gxOut">0</output></div>
+              <input type="range" id="gx" min="-120" max="120" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="gy">offset y</label><output id="gyOut">0</output></div>
+              <input type="range" id="gy" min="-120" max="120" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="grot">rotate</label><output id="grotOut">0</output></div>
+              <input type="range" id="grot" min="-180" max="180" step="1" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="gsx">scale x</label><output id="gsxOut">1.00</output></div>
+              <input type="range" id="gsx" min="0.2" max="2.5" step="0.01" value="1" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="gsy">scale y</label><output id="gsyOut">1.00</output></div>
+              <input type="range" id="gsy" min="0.2" max="2.5" step="0.01" value="1" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="gphase">phase</label><output id="gphaseOut">auto</output></div>
+              <input type="range" id="gphase" min="-1" max="4" step="0.01" value="-1" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="gdepth">depth ×</label><output id="gdepthOut">1.00</output></div>
+              <input type="range" id="gdepth" min="0" max="4" step="0.01" value="1" />
+            </div>
+            </div>
+            <div class="ctl-row">
+              <button type="button" id="selClear">CLEAR</button>
+              <button type="button" id="selAll">ALL</button>
+              <button type="button" id="selNone">NONE</button>
+            </div>
+          </section>
+
           <section class="panel">
             <h2><span>A</span> BASE TRANSFORM</h2>
             <div class="ctl">
@@ -146,7 +216,7 @@ SYMULATOR</textarea>
           </section>
 
           <section class="panel">
-            <h2><span>B</span> MODULATION</h2>
+            <h2><span>B1</span> MODULATION</h2>
             <div class="ctl-row between">
               <label class="check"><input type="checkbox" id="modOn" checked /> ACTIVE</label>
               <label class="check"><input type="checkbox" id="modMirror" /> MIRROR</label>
@@ -185,6 +255,51 @@ SYMULATOR</textarea>
           </section>
 
           <section class="panel">
+            <h2><span>B2</span> SECOND MODULATOR</h2>
+            <div class="ctl-row between">
+              <label class="check"><input type="checkbox" id="mod2On" /> ACTIVE</label>
+              <label class="check"><input type="checkbox" id="mod2Mirror" /> MIRROR</label>
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="rate2">rate</label><output id="rate2Out">0.12</output></div>
+              <input type="range" id="rate2" min="0.02" max="3" step="0.01" value="0.12" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="depth2">depth</label><output id="depth2Out">0</output></div>
+              <input type="range" id="depth2" min="0" max="60" step="0.5" value="0" />
+            </div>
+            <div class="ctl">
+              <div class="ctl-head"><label for="spread2">phase spread</label><output id="spread2Out">0.50</output></div>
+              <input type="range" id="spread2" min="0" max="4" step="0.01" value="0.5" />
+            </div>
+            <div class="field">
+              <label for="target2">target</label>
+              <select id="target2">
+                <option value="scale">SCALE</option>
+                <option value="y">Y POSITION</option>
+                <option value="rotate">ROTATION</option>
+                <option value="skew">SHEAR</option>
+                <option value="opacity">DENSITY</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="wave2">waveform</label>
+              <select id="wave2">
+                <option value="sine">SINE</option>
+                <option value="tri">TRIANGLE</option>
+                <option value="saw">SAWTOOTH</option>
+                <option value="pulse">PULSE</option>
+              </select>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2><span>∂</span> SCOPE</h2>
+            <canvas id="scope" class="scope" width="560" height="140"></canvas>
+            <p class="hint">B1 solid · B2 dim. Ticks are glyph phases at the current frame.</p>
+          </section>
+
+          <section class="panel">
             <h2><span>~</span> AUDIO</h2>
             <div class="ctl-row between">
               <label class="check"><input type="checkbox" id="audioOn" /> REACTIVE</label>
@@ -193,7 +308,7 @@ SYMULATOR</textarea>
             <div class="field">
               <label for="audioSource">source</label>
               <select id="audioSource">
-                <option value="tone">INTERNAL OSCILLATOR</option>
+                <option value="tone">INTERNAL TREMOLO</option>
                 <option value="mic">MICROPHONE</option>
               </select>
             </div>
@@ -205,7 +320,7 @@ SYMULATOR</textarea>
               <div class="ctl-head"><label for="sensitivity">sensitivity</label><output id="sensitivityOut">1.0</output></div>
               <input type="range" id="sensitivity" min="0.2" max="4" step="0.1" value="1" />
             </div>
-            <p class="hint">Level scales modulation depth. Internal source is a silent tremolo generator; mic mode listens to the room.</p>
+            <p class="hint">Level scales both modulation channels. Internal source is silent.</p>
           </section>
 
           <section class="panel">
@@ -218,11 +333,35 @@ SYMULATOR</textarea>
                 <option value="column">COLUMN</option>
                 <option value="keygen">KEYGEN</option>
                 <option value="flood">FLOOD</option>
+                <option value="stagger">STAGGER</option>
               </select>
             </div>
             <div class="ctl-row">
               <button type="button" id="randomBtn">RANDOMIZE</button>
-              <button type="button" id="applyBtn" class="primary">APPLY PRESET</button>
+              <button type="button" id="applyBtn" class="primary">APPLY</button>
+            </div>
+          </section>
+
+          <section class="panel">
+            <h2><span>L</span> LIBRARY</h2>
+            <div class="field">
+              <label for="slot">slot</label>
+              <select id="slot">
+                <option value="a">A</option>
+                <option value="b">B</option>
+                <option value="c">C</option>
+                <option value="d">D</option>
+                <option value="e">E</option>
+              </select>
+            </div>
+            <div class="ctl-row">
+              <button type="button" id="saveSlot">SAVE</button>
+              <button type="button" id="loadSlot">LOAD</button>
+              <button type="button" id="shareBtn">COPY LINK</button>
+            </div>
+            <div class="ctl-row">
+              <button type="button" id="importBtn">IMPORT SPEC</button>
+              <input type="file" id="importFile" accept=".json" hidden />
             </div>
           </section>
         </aside>
@@ -235,7 +374,7 @@ SYMULATOR</textarea>
           <button type="button" id="pngBtn">PNG</button>
           <button type="button" id="jsonBtn">SPEC</button>
         </div>
-        <p class="colophon">PER-CHARACTER TRANSFORM LANES · VARIABLE AXES · AUDIO-COUPLED MODULATION</p>
+        <p class="colophon">PER-GLYPH OVERRIDES · DUAL MODULATION · KERNING · AUDIO COUPLING</p>
         <div class="foot-serial">glyph.pr0xy.dev</div>
       </footer>
     </div>

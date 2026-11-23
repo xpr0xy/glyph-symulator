@@ -1,7 +1,8 @@
 # GLYPH / SYMULATOR
 
-Real-time typographic synthesis terminal. Per-glyph transform lanes, a modulation
-channel, variable font axes, spacing calibration, audio coupling, and SVG/PNG/spec export.
+Real-time typographic synthesis terminal. Per-glyph selection and overrides, two modulation
+channels, uploaded typefaces, kerning calibration, frame baking, audio coupling, and
+SVG/PNG/spec export.
 
 Live: **https://glyph.pr0xy.dev**
 
