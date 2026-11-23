@@ -711,6 +711,11 @@ function fpsLoop(now) {
   requestAnimationFrame(fpsLoop);
 }
 
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) el.roFps.textContent = 'IDLE';
+  else { frames = 0; lastFps = performance.now(); }
+});
+
 function clock() {
   const d = new Date();
   const p = (n) => String(n).padStart(2, '0');
